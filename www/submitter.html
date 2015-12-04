@@ -1,0 +1,84 @@
+<html>
+<head>
+  <title>Submit Your Details</title>
+	<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+<script src="https://sdk.amazonaws.com/js/aws-sdk-2.1.28.min.js"></script>
+<script>
+AWS.config.region = 'eu-west-1';
+AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+	IdentityPoolId: 'eu-west-1:dc4fc0d0-5adf-4a78-be00-de80518dde21'
+});
+
+// Get reference for AWS clients
+var dynamodb = new AWS.DynamoDB({params: {TableName: 'serverlessSignup'}});
+</script>
+<h1>Submit Your Details</h1>
+  <div id="info">
+  Sign Up
+  </div>
+  <table>
+    <tr>
+      <td>Email</td>
+      <td><input type="email" id="email" size="20">
+    </tr>
+    <tr>
+      <td>First Name</td>
+      <td><input type="firstname" id="firstname" size="20">
+    </tr>
+    <tr>
+      <td>Last Name</td>
+      <td><input type="lastname" id="lastname" size="20">
+    </tr>
+    <tr>
+      <td colspan="2">
+        <button id="submit-button">Submit</button>
+      </td>
+    </tr>
+  </table>
+
+<script>
+  var info = document.getElementById('info');
+var email = document.getElementById('email');
+var firstname = document.getElementById('firstname');
+var lastname = document.getElementById('lastname');
+var signupButton = document.getElementById('submit-button');
+
+signupButton.addEventListener('click', function() {
+		info.innerHTML = 'Sign Up...';
+		if (email.value == null || email.value == '') {
+			info.innerHTML = 'Please specify your email address.';
+		} else if (firstname.value == null || firstname.value == '') {
+			info.innerHTML = 'Please provide your first name.';
+		} else if (lastname.value == null || lastname.value == '') {
+			info.innerHTML = 'Please provide your last name.';
+		} else {
+			var input = {
+				email: email.value,
+				firstname: firstname.value,
+				lastname: lastname.value,
+			};
+			console.log(input.email);
+			dynamodb.putItem({
+				"Item": {
+					"email": {
+						"S": input.email
+					},
+					"FirstName": {
+						"S": input.firstname
+					},
+					"LastName": {
+						"S": input.lastname
+					}
+				},
+				"ConditionExpression": 'attribute_not_exists (email)'
+			}, function(err, data) {
+				if (err) console.log(err); // an error occurred
+				else console.log(data) // successful response
+			});
+		}
+	});
+</script>
+</body>
+</html>
